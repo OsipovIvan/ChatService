@@ -1,7 +1,7 @@
 package model
 
 class ChatService(
-    val currentUser: User,
+    private val currentUser: User,
     private val mapChat: HashMap<String, Chat> = HashMap()
 ) {
 
@@ -31,10 +31,11 @@ class ChatService(
         return listChat
     }
 
-    fun createMessage(recipient: User, sender: User, text: String){
+    fun createMessage(recipient: User, sender: User, text: String): Message{
         val chat = createOrGetChat(recipient, sender)
         val message = Message(text = text, sender = sender, recipient = recipient, chatId = chat.chatId)
         chat.listMessage.add(message)
+        return message
     }
 
     fun editMessage(chatId: String, messageId: String, text: String) {
@@ -50,8 +51,11 @@ class ChatService(
     fun removeMessage(chatId: String, messageId: String){
         val chat = mapChat[chatId]
         chat?.let {
-            val mapMessage = chat.listMessage.filter { it.messageId != messageId}
-            if (mapMessage.isEmpty()){
+            val oldListMessage = chat.listMessage
+            val newListMessage = oldListMessage.filter { it.messageId != messageId}
+            oldListMessage.clear()
+            oldListMessage.addAll(newListMessage)
+            if (oldListMessage.isEmpty()){
                 removeChat(chatId)
             }
         }
